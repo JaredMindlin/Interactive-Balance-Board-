@@ -1,0 +1,12 @@
+Meeting Logs (Team Members: Jared Mindlin, Luis Hurtado, Bruno Montes - Physical = In-Person/Lab & Virtual = Zoom):
+Date - Activity - Members Present
+October 8th, 2024 - Inital Team Meeting & Feature/Technology Brainstorming - All (Physical)
+October 15th, 2024 - Research Technology Suggestions and Feedback Received from Dr. Alex - Bruno Montes & Jared Mindlin (Physical)/ Luis Hurtado (Virtual)
+October 22nd, 2024 - Pre-Alpha Build Initial Work & Discussion - Bruno Montes & Jared Mindlin (Physical)/ Luis Hurtado (Virtual)
+October 24th, 2024 - Pre-Alpha Build Work Delegation, Work on Presentation, & Parts Finalization - All (Physical)
+October 29th, 2024 - Research on Velostat as a Possible Design Alternative & Parts Order Placed - Bruno Montes (Physical)/ Luis Hurtado & Jared Mindlin (Virtual)
+November 5th, 2024 - Montessori Board Model Sent To Dr. Alex by Jared & Game Design for the Boards Discussion - All (Physical)
+November 7th, 2024 - Parts Receivied & Microprocessor Boards Assembled/Soldered - All (Physical)
+November 12th, 2024 - Board Received from Dr. Alex & Brought Back to the Lab for Measurement and Part Placing Planning - All (Physical)
+November 14th, 2024 - Further Worked on the Board (Placement & Part Configuration) - Luis Hurtado & Jared Mindlin (Physical)/Bruno Montes (Virtual)
+November 19th, 2024 - Prototype Design Revisions from Pre-Alpha Feedback, Thanksgiving Week Work Delegation, & Planning for Presentation - All (Physical)
