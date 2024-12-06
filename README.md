@@ -8,20 +8,20 @@ This project is part of the Montessori Interactive Balance Board System, which a
 * Monitor and control the system's LED status.
 
 **Game Modes:**
-Pathway Game: Guide the user from a starting point (green node) to a destination (red node) via blue LED pathways (placeholder created).
-Up Next Game: Sequentially guide the user through a series of dynamically changing nodes (placeholder created).
+Pathway Game: Guide the user from a starting point (green node) to a destination (red node) via blue LED pathways (placeholder created).__
+Up Next Game: Sequentially guide the user through a series of dynamically changing nodes (placeholder created).__
 
 **Database Integration:**
-Real-time updates of system and game states using MongoDB.
-Persistent storage for:
+Real-time updates of system and game states using MongoDB.__
+Persistent storage for:__
 * System status (ON/OFF).
 * Connected devices count.
 * LED state.
 * Selected game mode.
 
 **Frontend-Backend Communication:**
-API integration between the React frontend and the Node.js/Express backend.
-Live updates to the backend state via Axios.
+* API integration between the React frontend and the Node.js/Express backend.
+* Live updates to the backend state via Axios.
 
 **Wi-Fi/Bluetooth Integration: 🚧 In Progress**
 * Communication between the app and the ESP32 server for real-time hardware interaction.
@@ -40,7 +40,7 @@ Live updates to the backend state via Axios.
 
 **Steps**
 Clone the repository:
-* git clone https://github.com/JaredMindlin/Interactive-Balance-Board.git
+* git clone https://github.com/JaredMindlin/Interactive-Balance-Board-.git
 * cd Interactive-Balance-Board
 
 Install dependencies for both frontend and backend:
