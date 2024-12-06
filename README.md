@@ -8,12 +8,12 @@ This project is part of the Montessori Interactive Balance Board System, which a
 * Monitor and control the system's LED status.
 
 **Game Modes:**
-Pathway Game: Guide the user from a starting point (green node) to a destination (red node) via blue LED pathways (placeholder created).__
-Up Next Game: Sequentially guide the user through a series of dynamically changing nodes (placeholder created).__
+Pathway Game: Guide the user from a starting point (green node) to a destination (red node) via blue LED pathways (placeholder created).<br />
+Up Next Game: Sequentially guide the user through a series of dynamically changing nodes (placeholder created).<br />
 
 **Database Integration:**
-Real-time updates of system and game states using MongoDB.__
-Persistent storage for:__
+Real-time updates of system and game states using MongoDB.<br />
+Persistent storage for:<br />
 * System status (ON/OFF).
 * Connected devices count.
 * LED state.
