@@ -13,7 +13,7 @@ app.use(cors({
   methods: ['GET', 'POST'],
   credentials: true,
 }));
-app.use('/api/esp', espRoutes); // Add the ESP32 routes here
+app.use('/api/esp', espRoutes); // Add the ESP32 routes 
 
 const startServer = async () => {
   try {

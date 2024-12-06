@@ -2,8 +2,7 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 
-// Replace with your ESP32's local IP address or hostname
-const ESP32_URL = 'http://192.168.0.100'; // Example IP of ESP32
+const ESP32_URL = 'http://192.168.0.100'; 
 
 router.post('/command', async (req, res) => {
     const { deviceCount } = req.body;
@@ -16,10 +15,8 @@ router.post('/command', async (req, res) => {
         const db = getDB();
         const collection = db.collection('boardState');
 
-        // Update the deviceCount in the database
         await collection.updateOne({}, { $set: { deviceCount } }, { upsert: true });
 
-        // Fetch the updated document to confirm the change
         const updatedState = await collection.findOne({});
         res.json(updatedState);
     } catch (error) {

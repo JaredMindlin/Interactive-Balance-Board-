@@ -1,70 +1,69 @@
-# Getting Started with Create React App
+**Montessori Interactive Balance Board App**
+This project is part of the Montessori Interactive Balance Board System, which aims to provide an engaging, technology-enhanced educational tool for children. The app serves as the primary interface for interacting with the system, enabling game selection, system control, and real-time status updates of connected devices.
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+**Features: ✅ Completed Features**
+* System Control Dashboard:
+* Toggle system ON/OFF and manage connections to devices (ESP32 boards).
+* Display the count of connected devices in real-time.
+* Monitor and control the system's LED status.
 
-## Available Scripts
+**Game Modes:**
+Pathway Game: Guide the user from a starting point (green node) to a destination (red node) via blue LED pathways (placeholder created).
+Up Next Game: Sequentially guide the user through a series of dynamically changing nodes (placeholder created).
 
-In the project directory, you can run:
+**Database Integration:**
+Real-time updates of system and game states using MongoDB.
+Persistent storage for:
+* System status (ON/OFF).
+* Connected devices count.
+* LED state.
+* Selected game mode.
 
-### `npm start`
+**Frontend-Backend Communication:**
+API integration between the React frontend and the Node.js/Express backend.
+Live updates to the backend state via Axios.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+**Wi-Fi/Bluetooth Integration: 🚧 In Progress**
+* Communication between the app and the ESP32 server for real-time hardware interaction.
+* Enable hardware-triggered events and feedback.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+**Game Interactions:**
+* Fully interactive gameplay tied to hardware input/output (e.g., LED activation and sensor feedback).
+* Dependency on ESP32 connections and hardware setup.
 
-### `npm test`
+**Installation and Setup:**
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+**Prerequisites**
+* Node.js and npm/yarn installed on your system.
+* MongoDB Atlas account or a locally hosted MongoDB instance.
+* ESP32 with Arduino IDE configured for Wi-Fi/Bluetooth communication.
 
-### `npm run build`
+**Steps**
+Clone the repository:
+* git clone https://github.com/JaredMindlin/Interactive-Balance-Board.git
+* cd Interactive-Balance-Board
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Install dependencies for both frontend and backend:
+* cd montessori-app/frontend
+* npm install
+* cd ../backend
+* npm install
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Start the MongoDB database connection and backend server:
+* node server.js
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Start the frontend development server:
+* cd ../frontend
+* npm start
 
-### `npm run eject`
+Access the app at http://localhost:3000.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+**Usage**
+* Navigate to the System Control page to manage the system's state and connected devices.
+* Select a game mode from the Game Modes page. Changes will reflect in the database.
+* Monitor real-time system updates and continue further Wi-Fi/Bluetooth integration.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+**Future Goals**
+* Finalize hardware communication for seamless interaction between the app and the ESP32 server.
+* Enhance gameplay by incorporating live feedback from sensors and LEDs.
+* Improve UI/UX based on user testing and feedback.
