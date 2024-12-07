@@ -2,7 +2,7 @@
 This project is part of the Montessori Interactive Balance Board System, which aims to provide an engaging, technology-enhanced educational tool for children. The app serves as the primary interface for interacting with the system, enabling game selection, system control, and real-time status updates of connected devices.
 
 **Features: ✅ Completed Features**
-* System Control Dashboard:
+System Control Dashboard:<br />
 * Toggle system ON/OFF and manage connections to devices (ESP32 boards).
 * Display the count of connected devices in real-time.
 * Monitor and control the system's LED status.
@@ -56,7 +56,7 @@ Start the frontend development server:
 * cd ../frontend
 * npm start
 
-Access the app at http://localhost:3000.
+Access the app at http://localhost:3000 locally or http://<your-network-ip>:3000.
 
 **Usage**
 * Navigate to the System Control page to manage the system's state and connected devices.
@@ -67,3 +67,7 @@ Access the app at http://localhost:3000.
 * Finalize hardware communication for seamless interaction between the app and the ESP32 server.
 * Enhance gameplay by incorporating live feedback from sensors and LEDs.
 * Improve UI/UX based on user testing and feedback.
+
+**All Known Bugs**
+* Apart from placeholders for 'In Progress' work, inexpected behavior currently only lies in communicating with the ESP32 Server Board to actually track the real-time user data.<br />
+* We have attempted to integrate the app to have access to HTTP requests made by the board to update the backend database and trigger the board to dequeue and sleep its process, however this feature has been moved under 'In Progress' by the team.
