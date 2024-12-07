@@ -24,6 +24,9 @@ Persistent storage for:<br />
 * API integration between the React frontend and the Node.js/Express backend.
 * Live updates to the backend state via Axios.
 
+**ESP32 Hardware Perception and Output**
+* Connected NeoPixel Strip and HC-SR01 ultrasonic distance sensors to the WSP32 Firebeetle using SPI and Arduino Libraries. The LED Strip reflects the distance detected by each distance sensor. 
+
 **Wi-Fi/Bluetooth Integration: 🚧 In Progress**
 * Communication between the app and the ESP32 server for real-time hardware interaction.
 * Enable hardware-triggered events and feedback.
@@ -72,3 +75,5 @@ Access the app at http://localhost:3000 locally or http://'your.network.ip':3000
 **All Known Bugs**
 * Apart from placeholders for 'In Progress' work, inexpected behavior currently only lies in communicating with the ESP32 Server Board to actually track the real-time user data.<br />
 * We have attempted to integrate the app to have access to HTTP requests made by the board to update the backend database and trigger the board to dequeue and sleep its process, however this feature has been moved under 'In Progress' by the team.
+* When connected to battery, the LED strip randomly lights blue and purple when a close distance is detected. (More lights turn on) Likely due to a lack of power to the LED strip.
+
