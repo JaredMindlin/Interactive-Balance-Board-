@@ -56,7 +56,7 @@ Start the frontend development server:
 * cd ../frontend
 * npm start
 
-Access the app at http://localhost:3000 locally or http://<your-network-ip>:3000.
+Access the app at http://localhost:3000 locally or http://'your.network.ip':3000.
 
 **Usage**
 * Navigate to the System Control page to manage the system's state and connected devices.
