@@ -7,7 +7,7 @@ System Control Dashboard:<br />
 * Display the count of connected devices in real-time.
 * Monitor and control the system's LED status.
 
-**Game Modes:**
+**Game Modes:**<br />
 Pathway Game: Guide the user from a starting point (green node) to a destination (red node) via blue LED pathways (placeholder created).<br />
 Up Next Game: Sequentially guide the user through a series of dynamically changing nodes (placeholder created).<br />
 
