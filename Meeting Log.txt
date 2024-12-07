@@ -10,3 +10,4 @@ November 7th, 2024 - Parts Receivied & Microprocessor Boards Assembled/Soldered 
 November 12th, 2024 - Board Received from Dr. Alex & Brought Back to the Lab for Measurement and Part Placing Planning - All (Physical)
 November 14th, 2024 - Further Worked on the Board (Placement & Part Configuration) - Luis Hurtado & Jared Mindlin (Physical)/Bruno Montes (Virtual)
 November 19th, 2024 - Prototype Design Revisions from Pre-Alpha Feedback, Thanksgiving Week Work Delegation, & Planning for Presentation - All (Physical)
+December 2nd, 2024 - Attempted to Implement WiFi Server with App Backend & Discussed Presentation Requirements - All (Physical)
