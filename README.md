@@ -2,6 +2,7 @@
 This project is part of the Montessori Interactive Balance Board System, which aims to provide an engaging, technology-enhanced educational tool for children. The app serves as the primary interface for interacting with the system, enabling game selection, system control, and real-time status updates of connected devices.
 
 **Features: ✅ Completed Features**<br />
+<br />
 System Control Dashboard:<br />
 * Toggle system ON/OFF and manage connections to devices (ESP32 boards).
 * Display the count of connected devices in real-time.
