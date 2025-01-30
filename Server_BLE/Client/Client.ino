@@ -1,54 +1,48 @@
+// BLE Client
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEClient.h>
+#include <BLEScan.h>
 
-#define SERVICE_UUID        "12345678-1234-1234-1234-123456789abc"
-#define CHARACTERISTIC_UUID "abcd1234-5678-90ab-cdef-1234567890ab"
+#define SERVICE_UUID "12345678-1234-5678-1234-56789abcdef0"
+#define CHARACTERISTIC_UUID "87654321-4321-6789-4321-abcdef987654"
 
-BLEClient *client;
+static BLEAdvertisedDevice* myDevice;
+
+class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
+    void onResult(BLEAdvertisedDevice advertisedDevice) {
+        if (advertisedDevice.haveServiceUUID() && advertisedDevice.getServiceUUID().equals(BLEUUID(SERVICE_UUID))) {
+            Serial.println("Found target BLE Server!");
+            myDevice = new BLEAdvertisedDevice(advertisedDevice);
+        }
+    }
+};
 
 void setup() {
-  Serial.begin(115200);
-  Serial.println("Starting BLE Client...");
-
-  BLEDevice::init("FireBeetle_BLE_Client");
-  client = BLEDevice::createClient();
-  Serial.println("Connecting to server...");
-
-  if (client->connect(BLEAddress("192.168.7.1"))) {
-    Serial.println("Connected to server!");
-
-    BLERemoteService *service = client->getService(SERVICE_UUID);
-    if (service == nullptr) {
-      Serial.println("Failed to find service UUID. Disconnecting...");
-      client->disconnect();
-      return;
+    Serial.begin(115200);
+    BLEDevice::init("Montessori Board (Mimic)");
+    BLEScan* pBLEScan = BLEDevice::getScan();
+    pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
+    pBLEScan->setActiveScan(true);
+    pBLEScan->start(5, false);
+    
+    if (myDevice) {
+        BLEClient* pClient = BLEDevice::createClient();
+        pClient->connect(myDevice);
+        BLERemoteService* pRemoteService = pClient->getService(SERVICE_UUID);
+        if (pRemoteService) {
+            BLERemoteCharacteristic* pRemoteCharacteristic = pRemoteService->getCharacteristic(CHARACTERISTIC_UUID);
+            if (pRemoteCharacteristic) {
+                String value = pRemoteCharacteristic->readValue();
+                String stringValue = String(value.c_str());
+                Serial.print("Characteristic value: ");
+                Serial.println(stringValue);
+            }
+        }
+        pClient->disconnect();
     }
-
-    BLERemoteCharacteristic *characteristic = service->getCharacteristic(CHARACTERISTIC_UUID);
-    if (characteristic == nullptr) {
-      Serial.println("Failed to find characteristic UUID. Disconnecting...");
-      client->disconnect();
-      return;
-    }
-
-    // Write to the server
-    String message = "Hello, Server!";
-    characteristic->writeValue(message.c_str(), message.length());
-    Serial.print("Sent: ");
-    Serial.println(message);
-
-    // Read notification from the server
-    if (characteristic->canNotify()) {
-      String serverResponse = characteristic->readValue().c_str();
-      Serial.print("Received from server: ");
-      Serial.println(serverResponse);
-    }
-  } else {
-    Serial.println("Failed to connect to server.");
-  }
 }
 
 void loop() {
-  delay(1000);
+    delay(2000);
 }

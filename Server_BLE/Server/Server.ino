@@ -1,49 +1,33 @@
+// BLE Server
 #include <BLEDevice.h>
-#include <BLEServer.h>
 #include <BLEUtils.h>
-#include <BLE2902.h>
+#include <BLEServer.h>
 
-#define SERVICE_UUID        "12345678-1234-1234-1234-123456789abc"
-#define CHARACTERISTIC_UUID "abcd1234-5678-90ab-cdef-1234567890ab"
+#define SERVICE_UUID "12345678-1234-5678-1234-56789abcdef0"
+#define CHARACTERISTIC_UUID "87654321-4321-6789-4321-abcdef987654"
 
-BLECharacteristic *characteristic;
+BLECharacteristic *pCharacteristic;
 
 void setup() {
-  Serial.begin(115200);
-  Serial.println("Starting BLE Server...");
-
-  BLEDevice::init("FireBeetle_BLE_Server");
-  BLEServer *server = BLEDevice::createServer();
-
-  BLEService *service = server->createService(SERVICE_UUID);
-
-  characteristic = service->createCharacteristic(
-    CHARACTERISTIC_UUID,
-    BLECharacteristic::PROPERTY_READ |
-    BLECharacteristic::PROPERTY_WRITE |
-    BLECharacteristic::PROPERTY_NOTIFY
-  );
-
-  characteristic->setValue("Hello, Client!");
-  service->start();
-  BLEAdvertising *advertising = BLEDevice::getAdvertising();
-  advertising->addServiceUUID(SERVICE_UUID);
-  advertising->start();
-
-  Serial.println("BLE Server is running and advertising...");
+    Serial.begin(115200);
+    BLEDevice::init("Montessori Board BLE Server");
+    BLEServer *pServer = BLEDevice::createServer();
+    BLEService *pService = pServer->createService(SERVICE_UUID);
+    
+    pCharacteristic = pService->createCharacteristic(
+                      CHARACTERISTIC_UUID,
+                      BLECharacteristic::PROPERTY_READ |
+                      BLECharacteristic::PROPERTY_WRITE);
+    
+    pCharacteristic->setValue("Hello Board, You reached the server!");
+    pService->start();
+    
+    BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
+    pAdvertising->addServiceUUID(SERVICE_UUID);
+    BLEDevice::startAdvertising();
+    Serial.println("BLE Server started");
 }
 
 void loop() {
-  // Check for notifications from the client
-  if (characteristic->getValue() != "") {
-    String clientMessage = characteristic->getValue().c_str();
-    Serial.print("Received from Client: ");
-    Serial.println(clientMessage);
-
-    // Respond to the client
-    characteristic->setValue("Hello, Client! Message received.");
-    characteristic->notify();
-  }
-
-  delay(1000);
+    delay(2000);
 }
