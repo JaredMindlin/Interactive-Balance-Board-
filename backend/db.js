@@ -24,4 +24,13 @@ const getDB = () => {
   return db;
 };
 
+/*
+const getDB = () => {
+  if (!db) {
+    throw new Error('Database not initialized. Call connectDB first.');
+  }
+  return db;
+};
+*/
+
 module.exports = { connectDB, getDB };
