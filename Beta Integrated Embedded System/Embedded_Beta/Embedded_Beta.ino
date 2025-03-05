@@ -68,38 +68,43 @@ void UpNextGameMode() {
 }
 
 void updateState() {
-  if (myDevice) {
-    BLEClient* pClient = BLEDevice::createClient();
+  if (!myDevice) {
+    Serial.println("No BLE device found.");
+    return;
+  }
+
+  static BLEClient* pClient = BLEDevice::createClient();
+  
+  if (!pClient->isConnected()) {
     pClient->connect(myDevice);
-    
-    BLERemoteService* pRemoteService = pClient->getService(SERVICE_UUID);
-    if (pRemoteService == nullptr) {
-      Serial.println("Failed to find service UUID.");
-      pClient->disconnect();
-      return;
-    }
+  }
 
-    BLERemoteCharacteristic* pRemoteCharacteristic = pRemoteService->getCharacteristic(CHARACTERISTIC_UUID);
-    if (pRemoteCharacteristic == nullptr) {
-      Serial.println("Failed to find characteristic UUID.");
-      pClient->disconnect();
-      return;
-    }
-
-    String value = pRemoteCharacteristic->readValue();
-    Serial.print("Characteristic value: ");
-    Serial.println(value);
-
-    if (value == "Pathway") {
-      currentState = PATHWAY;
-    } 
-    else if (value == "UpNext") {
-      currentState = UPNEXT;
-    } 
-    else {
-      currentState = CONNECTED;
-    }
+  BLERemoteService* pRemoteService = pClient->getService(SERVICE_UUID);
+  if (pRemoteService == nullptr) {
+    Serial.println("Failed to find service UUID.");
     pClient->disconnect();
+    return;
+  }
+
+  BLERemoteCharacteristic* pRemoteCharacteristic = pRemoteService->getCharacteristic(CHARACTERISTIC_UUID);
+  if (pRemoteCharacteristic == nullptr) {
+    Serial.println("Failed to find characteristic UUID.");
+    pClient->disconnect();
+    return;
+  }
+
+  String value = pRemoteCharacteristic->readValue();
+  Serial.print("Characteristic value: ");
+  Serial.println(value);
+
+  if (value == "Pathway") {
+    currentState = PATHWAY;
+  } 
+  else if (value == "UpNext") {
+    currentState = UPNEXT;
+  } 
+  else {
+    currentState = CONNECTED;
   }
 }
 
