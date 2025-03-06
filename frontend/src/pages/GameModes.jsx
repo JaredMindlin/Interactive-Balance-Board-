@@ -6,14 +6,15 @@ function GameModes() {
   const [shapes, setShapes] = useState([]);
   const { selectGameMode, gameModeSelected } = useContext(SystemContext);
 
+  // Generate random shapes for the background animation
   useEffect(() => {
     const generatedShapes = Array.from({ length: 20 }, (_, index) => ({
       id: index,
       left: Math.random() * 90,
       size: Math.random() * 30 + 20,
       color: `rgba(${Math.floor(Math.random() * 255)}, 
-                              ${Math.floor(Math.random() * 255)}, 
-                              ${Math.floor(Math.random() * 255)}, 0.7)`,
+                    ${Math.floor(Math.random() * 255)}, 
+                    ${Math.floor(Math.random() * 255)}, 0.7)`,
       shape: ['circle', 'square', 'triangle'][Math.floor(Math.random() * 3)],
       duration: Math.random() * 5 + 5,
       delay: Math.random() * 2,
@@ -21,11 +22,30 @@ function GameModes() {
     setShapes(generatedShapes);
   }, []);
 
-  const handleGameSelect = (game) => {
-    if (gameModeSelected === game) {
-      selectGameMode('');
-    } else {
-      selectGameMode(game);
+  /**
+   * handleGameSelect:
+   * - Toggles the selected game mode in Context.
+   * - Optionally sends a POST request to the backend
+   *   so the ESP32 or backend can adjust its state.
+   */
+  const handleGameSelect = async (game) => {
+    const newMode = (gameModeSelected === game) ? '' : game;
+    // Update the Context so UI changes accordingly
+    selectGameMode(newMode);
+
+    // Make a POST request to inform the backend of the new mode
+    try {
+      const response = await fetch('http://172.20.10.4:5000/set-game-mode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        // Send the new mode; if empty, it's essentially unselecting
+        body: JSON.stringify({ gameMode: newMode }),
+      });
+      const data = await response.json();
+      console.log('Server response:', data);
+      // Optional: Handle success/error states in the UI
+    } catch (error) {
+      console.error('Error sending game mode to backend:', error);
     }
   };
 
@@ -60,8 +80,10 @@ function GameModes() {
           </div>
         ))}
       </div>
+
       <h1 className="title">Game Modes</h1>
       <p>Select a game mode to get started!</p>
+
       <div className="game-options">
         {/* Pathway Game */}
         <div className="game-card">

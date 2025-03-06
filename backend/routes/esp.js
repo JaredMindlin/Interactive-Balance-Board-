@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 
-const ESP32_URL = 'http://192.168.0.100'; 
+const ESP32_URL = 'http://172.20.10.4'; 
 
 router.post('/command', async (req, res) => {
     const { deviceCount } = req.body;

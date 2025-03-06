@@ -29,18 +29,6 @@ function SystemControl() {
     setShapes(generatedShapes);
   }, []);
 
-  useEffect(() => { // temporary device count update for testing
-    if (isSystemOn) {
-      const timer = setInterval(() => {
-        const newDeviceCount = Math.floor(Math.random() * 5) + 1;
-        setDeviceCount(newDeviceCount);
-        axios.post('/api/board/update', { deviceCount: newDeviceCount });
-      }, 5000);
-
-      return () => clearInterval(timer);
-    }
-  }, [isSystemOn, setDeviceCount]);
-
   return (
     <div className="system-control-container">
       {/* Falling Shapes Background */}
