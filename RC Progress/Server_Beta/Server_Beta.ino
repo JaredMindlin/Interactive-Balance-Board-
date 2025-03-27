@@ -15,6 +15,7 @@
 #define SERVICE_UUID "12345678-1234-5678-1234-56789abcdef0"
 #define CHARACTERISTIC_UUID "87654321-4321-6789-4321-abcdef987654"
 #define BRIGHTNESS_CHARACTERISTIC_UUID "abcdef12-3456-7890-abcd-ef1234567890"
+#define BOARD_ID_CHARACTERISTIC_UUID "13579ace-2468-bdf0-1357-9ace2468bdf0"
 
 
 #define SSID "Bruno iPhone"
@@ -33,6 +34,7 @@ int nextTicket = 1;
 
 BLECharacteristic *pCharacteristic;
 BLECharacteristic *pBrightnessCharacteristic;
+BLECharacteristic *pBoardIdCharacteristic;
 BLEServer *pServer;
 bool deviceConnected = false;
 
@@ -42,6 +44,28 @@ class ServerCallbacks : public BLEServerCallbacks {
   void onConnect(BLEServer* pServer) override {
     Serial.println("Client Connected");
     deviceConnected = true;
+
+    // Assign the board an ID
+    int assignedID = -1;
+    for (unsigned int i = 1; i < nextTicket; i++) {
+      if (connectedBoards.find(i) == connectedBoards.end()) {
+        assignedID = i;
+        // Default construction
+        connectedBoards.emplace(i, false);
+        break; 
+      }
+    }
+
+    if (assignedID == -1) {
+      assignedID = nextTicket;
+      connectedBoards.emplace(nextTicket, false);
+      nextTicket++;
+    }
+    Serial.printf("Assigned Board ID: %d\n", assignedID);
+    // Send the ID back to the client board
+    String idStr = String(assignedID);
+    pBoardIdCharacteristic->setValue(idStr.c_str());
+    Serial.printf("Sent Board ID %s to client\n", idStr.c_str());
   }
   // Status for when the client board has disconnected
   void onDisconnect(BLEServer* pServer) override {
@@ -174,6 +198,7 @@ void setup() {
   
   BLEService *pService = pServer->createService(SERVICE_UUID);
   pCharacteristic = pService->createCharacteristic(CHARACTERISTIC_UUID, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
+  pBoardIdCharacteristic = pService->createCharacteristic(BOARD_ID_CHARACTERISTIC_UUID, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
   pBrightnessCharacteristic = pService->createCharacteristic(BRIGHTNESS_CHARACTERISTIC_UUID, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
   // Default brightness 100%
   pBrightnessCharacteristic->setValue("100");

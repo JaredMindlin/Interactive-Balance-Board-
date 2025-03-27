@@ -9,6 +9,7 @@
 #define NUM_PIXELS 30     // The number of LEDs (pixels) on NeoPixel LED strip
 #define SERVICE_UUID "12345678-1234-5678-1234-56789abcdef0"
 #define CHARACTERISTIC_UUID "87654321-4321-6789-4321-abcdef987654"
+#define BOARD_ID_CHARACTERISTIC_UUID "13579ace-2468-bdf0-1357-9ace2468bdf0"
 
 int pressurePin = A4;
 static BLEAdvertisedDevice* myDevice;
@@ -21,7 +22,7 @@ enum BoardStates {ON, CONNECTED, PATHWAY, UPNEXT};
 BoardStates currentState = ON;
 
 // Default Board ID before being assigned a real ID
-int boardID = 1;
+int boardID = -1;
 
 // Define the BLE Class
 class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
@@ -98,6 +99,16 @@ void updateState() {
     return;
   }
 
+  BLERemoteCharacteristic* pRemoteIdCharacteristic = pRemoteService->getCharacteristic(BOARD_ID_CHARACTERISTIC_UUID);
+  if (pRemoteIdCharacteristic) {
+    String idStr = pRemoteIdCharacteristic->readValue();
+    int newId = idStr.toInt();
+    if (newId >= 1 && newId != boardID) {
+      boardID = newId;
+      Serial.printf("Assigned new Board ID: %d\n", boardID);
+    }
+  }
+
   BLERemoteCharacteristic* pRemoteCharacteristic = pRemoteService->getCharacteristic(CHARACTERISTIC_UUID);
   if (!pRemoteCharacteristic) {
     Serial.println("Failed to find characteristic UUID.");
@@ -141,7 +152,8 @@ void setup() {
   
   pinMode(pressurePin, INPUT_PULLUP);
   setLEDs(0, 0, 0);
-  NeoPixel.begin();  // initialize NeoPixel strip object 
+  NeoPixel.begin();  // initialize NeoPixel strip object
+  Serial.printf("Initial Board ID: %d\n", boardID);
 }
 
 void loop() {
@@ -165,8 +177,8 @@ void loop() {
           UpNextGameMode(); // Same behavior as loop() in your current code
           break;
     }
-
     NeoPixel.show();
+    Serial.printf("Initial Board ID: %d\n", boardID);
     delay(1000);
 
 }
