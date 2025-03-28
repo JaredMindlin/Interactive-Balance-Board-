@@ -54,6 +54,7 @@ Install dependencies for both frontend and backend:
 * npm install
 
 Start the MongoDB database connection and backend server:
+* cd ../backend
 * node server.js
 
 Start the frontend development server:
