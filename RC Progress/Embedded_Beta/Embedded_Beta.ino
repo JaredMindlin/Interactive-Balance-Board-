@@ -117,24 +117,29 @@ void updateState() {
   }
 
   String value = pRemoteCharacteristic->readValue();
-  Serial.print("Characteristic value: ");
+  Serial.print("Received BLE message: ");
   Serial.println(value);
 
-  int brightness = atoi(value.c_str());
-  if (brightness >= 1 && brightness <= 100) {
-    adjustBrightness(boardBrightness, brightness);
-    Serial.print("Updated Brightness: ");
-    Serial.println(boardBrightness);
+  if (value.startsWith("ID:")) {
+    int newID = value.substring(3).toInt(); // Extract "X" from "ID:X"
+    if (newID >= 1 && newID != boardID) {
+      boardID = newID;
+      Serial.print("Updated Board ID: ");
+      Serial.println(boardID);
+    }
   }
-
-  if (value == "Pathway") {
+  // Handle other commands (e.g., "Pathway", "UpNext", brightness)
+  else if (value == "Pathway") {
     currentState = PATHWAY;
-  } 
+  }
   else if (value == "UpNext") {
     currentState = UPNEXT;
-  } 
-  else {
+  }
+  else if (value == "Connected") {
     currentState = CONNECTED;
+  }
+  else if (value.toInt() >= 1 && value.toInt() <= 100) {
+    adjustBrightness(boardBrightness, value.toInt());
   }
 }
 
