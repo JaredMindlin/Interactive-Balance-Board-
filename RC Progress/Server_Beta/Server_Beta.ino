@@ -23,7 +23,9 @@
 #define SERVER_URL "http://172.20.10.4:5000/update-device-count"
 
 // Unordered Set that holds IDs of connected boards
-std::unordered_map<int, bool> connectedBoards;
+std::unordered_map<int, bool> activeBoards;
+// Unordered Map that holds connections to boards
+std::unordered_map<int, BLERemoteCharacteristic*> boardCharacteristics;
 
 // Default GameMode (used for switching)
 int lastGameMode = -1;
@@ -48,24 +50,24 @@ class ServerCallbacks : public BLEServerCallbacks {
     // Assign the board an ID
     int assignedID = -1;
     for (unsigned int i = 1; i < nextTicket; i++) {
-      if (connectedBoards.find(i) == connectedBoards.end()) {
+      if (activeBoards.find(i) == activeBoards.end()) {
         assignedID = i;
         // Default construction
-        connectedBoards.emplace(i, false);
+        activeBoards.emplace(i, false);
         break; 
       }
     }
 
     if (assignedID == -1) {
       assignedID = nextTicket;
-      connectedBoards.emplace(nextTicket, false);
+      activeBoards.emplace(nextTicket, false);
       nextTicket++;
     }
     Serial.printf("Assigned Board ID: %d\n", assignedID);
-    // Send the ID back to the client board
-    String idStr = String(assignedID);
-    pBoardIdCharacteristic->setValue(idStr.c_str());
-    Serial.printf("Sent Board ID %s to client\n", idStr.c_str());
+    // Notify the client of its ID via existing characteristic
+    String idMsg = "ID:" + String(assignedID);
+    pCharacteristic->setValue(idMsg.c_str());  // Broadcast to all (client will filter)
+    Serial.printf("Assigned Board ID: %d\n", assignedID);
   }
   // Status for when the client board has disconnected
   void onDisconnect(BLEServer* pServer) override {
@@ -116,6 +118,11 @@ void sendBoardStatusToServer(String boardID, bool isOccupied) {
     Serial.print("HTTP Response code: ");
     // If -1, request failed
     Serial.println(httpResponseCode);  
+    if (httpResponseCode == 200) {
+      String bleMsg = "ID:" + boardID + ":Pathway";  // Or include brightness
+      pCharacteristic->setValue(bleMsg.c_str());
+      Serial.println("Broadcasted: " + bleMsg);
+    }
     http.end();
   }
 }
@@ -123,14 +130,19 @@ void sendBoardStatusToServer(String boardID, bool isOccupied) {
 int fetchBrightness() {
   if (WiFi.status() == WL_CONNECTED) {
       HTTPClient http;
-      http.begin("http://172.20.10.4:5000/game-mode");
+      http.begin("http://172.20.10.4:5000/brightness");
       
       int httpResponseCode = http.GET();  // Send GET request
 
       if (httpResponseCode > 0) {
           String response = http.getString();
           Serial.println("Brightness Response: " + response);
-          int brightness = response.toInt();
+          String delimiter1 = ":";
+          String delimiter2 = "}";
+          int pos1 = response.indexOf(delimiter1);
+          int pos2 = response.indexOf(delimiter2, pos1 + 1); // Start searching after the first delimiter
+          String substring = response.substring(pos1 + 1, pos2);
+          int brightness = substring.toInt();
           if (brightness >= 1 && brightness <= 100) {
             return brightness;
           }
@@ -213,7 +225,7 @@ void setup() {
 }
 
 void loop() {
-  for (auto iter = connectedBoards.begin(); iter != connectedBoards.end(); iter++) {
+  for (auto iter = activeBoards.begin(); iter != activeBoards.end(); iter++) {
     if (deviceConnected) {
     Serial.println("ESP32 Connected - Sending Data");
     delay(5000);
@@ -252,11 +264,12 @@ void loop() {
 
     if ((brightness != currentBrightness) && (brightness != -1)) {
       String brightnessStr = String(brightness);
-      pBrightnessCharacteristic->setValue(brightnessStr.c_str());
+      pCharacteristic->setValue(brightnessStr.c_str());
       Serial.print("Updated BLE Brightness to: ");
       Serial.println(brightness);
       currentBrightness = brightness;
     }
   }
+  Serial.printf("Current Unordered Map Size: %d\n", activeBoards.size());
   delay(5000);
 }
