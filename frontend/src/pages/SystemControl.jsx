@@ -7,11 +7,13 @@ function SystemControl() {
   const {
     isSystemOn,
     toggleSystem,
-    areLEDsOn,
-    toggleLEDs,
     deviceCount,
-    setDeviceCount,
+    // [NEW or MODIFIED CODE for LED slider logic]
+    ledBrightness,
+    updateLedBrightness,
+    areLEDsOn
   } = useContext(SystemContext);
+
   const [shapes, setShapes] = useState([]);
 
   useEffect(() => {
@@ -28,6 +30,10 @@ function SystemControl() {
     }));
     setShapes(generatedShapes);
   }, []);
+
+  const handleSliderChange = (e) => {
+    updateLedBrightness(e.target.value);
+  };
 
   return (
     <div className="system-control-container">
@@ -79,19 +85,39 @@ function SystemControl() {
               {isSystemOn ? 'Turn Off System' : 'Turn On System'}
             </button>
           </div>
+
           <div className="status-item">
             <h3>Connected Devices:</h3>
             <p className="plank-count">{deviceCount}</p>
           </div>
+
+          {/* [REMOVED CODE for LED on/off button] */}
+
+          {/* LED Brightness Slider */}
           <div className="status-item">
-            <h3>LED Master Control:</h3>
-            <button
-              className={`control-button ${areLEDsOn ? 'active' : ''}`}
-              onClick={toggleLEDs}
-              disabled={!isSystemOn} 
+            <h3>LED Brightness:</h3>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={ledBrightness}
+              onChange={handleSliderChange}
+              disabled={!isSystemOn}
+            />
+            <span>{ledBrightness}</span>
+          </div>
+
+          {/* [NEW or MODIFIED CODE for LED slider logic]
+              Optionally show if areLEDsOn is true/false */}
+          <div className="status-item">
+            <h3>LED State:</h3>
+            <p
+              className={`status-indicator ${
+                areLEDsOn ? 'connected' : 'disconnected'
+              }`}
             >
-              {areLEDsOn ? 'Turn LEDs OFF' : 'Turn LEDs ON'}
-            </button>
+              {areLEDsOn ? 'ON' : 'OFF'}
+            </p>
           </div>
         </div>
       </div>

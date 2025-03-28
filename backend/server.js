@@ -182,4 +182,14 @@ app.get("/game-mode", async (req, res) => {
   }
 });
 
+app.get("/brightness", async (req, res) => {
+  try {
+    const boardState = await getBoardState();
+    return res.status(200).json({ ledBrightness: boardState.ledBrightness });
+  } catch (error) {
+    console.error("Error fetching brightness:", error);
+    return res.status(500).json({ error: "Failed to fetch brightness" });
+  }
+});
+
 startServer();
