@@ -1,3 +1,4 @@
+// backend/db/boardState.js
 const { getDB } = require('../db');
 
 const getBoardState = async () => {
@@ -12,12 +13,15 @@ const getBoardState = async () => {
       deviceCount: 0,
       areLEDsOn: false,
       gameModeSelected: '',
-      ledBrightness: 0
+      ledBrightness: 0,
+
+      validBoards: [false, false, false], // for up to 3 boards
+      endBoard: [false, false, false],    // for up to 3 boards
+      nextTicket: 1                       // start ticket numbering at 1
     };
     await collection.insertOne(boardState);
   }
 
-  // If ledBrightness or areLEDsOn are missing, initialize them
   if (boardState.ledBrightness === undefined) {
     boardState.ledBrightness = 0;
     await collection.updateOne({}, { $set: { ledBrightness: 0 } });
@@ -25,6 +29,19 @@ const getBoardState = async () => {
   if (boardState.areLEDsOn === undefined) {
     boardState.areLEDsOn = false;
     await collection.updateOne({}, { $set: { areLEDsOn: false } });
+  }
+
+  if (!Array.isArray(boardState.validBoards)) {
+    boardState.validBoards = [false, false, false];
+    await collection.updateOne({}, { $set: { validBoards: boardState.validBoards } });
+  }
+  if (!Array.isArray(boardState.endBoard)) {
+    boardState.endBoard = [false, false, false];
+    await collection.updateOne({}, { $set: { endBoard: boardState.endBoard } });
+  }
+  if (boardState.nextTicket === undefined) {
+    boardState.nextTicket = 1;
+    await collection.updateOne({}, { $set: { nextTicket: 1 } });
   }
 
   return boardState;
@@ -39,7 +56,10 @@ const updateBoardState = async (updatedFields) => {
     'areLEDsOn',
     'deviceCount',
     'gameModeSelected',
-    'ledBrightness'
+    'ledBrightness',
+    'validBoards',
+    'endBoard',
+    'nextTicket'
   ];
 
   const fieldsToUpdate = {};
@@ -50,7 +70,6 @@ const updateBoardState = async (updatedFields) => {
   });
 
   await collection.updateOne({}, { $set: fieldsToUpdate }, { upsert: true });
-
   return collection.findOne({});
 };
 
