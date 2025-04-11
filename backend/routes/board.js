@@ -1,3 +1,4 @@
+/*
 const express = require('express');
 const router = express.Router();
 const { getBoardState, updateBoardState } = require('../db/boardState');
@@ -301,3 +302,4 @@ router.get('/board-end-data-two', async (req, res) => {
 });
 
 module.exports = router;
+*/
