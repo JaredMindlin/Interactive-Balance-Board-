@@ -2,6 +2,21 @@ const express = require('express');
 const router = express.Router();
 const { getBoardState, updateBoardState } = require('../db/boardState');
 
+// Helper function to shuffle an array (Fisher-Yates)
+const shuffle = (array) => {
+  let currentIndex = array.length, temporaryValue, randomIndex;
+  while (0 !== currentIndex) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
+  }
+  return array;
+};
+
+// GET /
+// Fetch full board state
 router.get('/', async (req, res) => {
   try {
     const boardState = await getBoardState();
@@ -12,6 +27,8 @@ router.get('/', async (req, res) => {
   }
 });
 
+// POST /update
+// Generic update for board state fields
 router.post('/update', async (req, res) => {
   try {
     console.log('Incoming request body:', req.body);
@@ -25,26 +42,26 @@ router.post('/update', async (req, res) => {
   }
 });
 
+// POST /register-board
+// Registers a new board (max 3). Assigns ID based on nextTicket.
 router.post('/register-board', async (req, res) => {
   try {
     const boardState = await getBoardState();
 
-    // Check if we've reached max boards (3)
     if (boardState.nextTicket > 3) {
       return res.status(400).json({ error: "Max boards reached (3)." });
     }
 
-    // Assign board ID based on nextTicket value
     const assignedID = boardState.nextTicket;
     const newTicket = assignedID + 1;
 
     let updateField = {};
     if (assignedID === 1) {
-      updateField.validBoardZero = 1; // Board 1 corresponds to index 0
+      updateField.validBoardZero = 1; // Board 1 → index 0
     } else if (assignedID === 2) {
-      updateField.validBoardOne = 1;  // Board 2 corresponds to index 1
+      updateField.validBoardOne = 1;  // Board 2 → index 1
     } else if (assignedID === 3) {
-      updateField.validBoardTwo = 1;  // Board 3 corresponds to index 2
+      updateField.validBoardTwo = 1;  // Board 3 → index 2
     }
     updateField.nextTicket = newTicket;
 
@@ -60,6 +77,8 @@ router.post('/register-board', async (req, res) => {
   }
 });
 
+// GET /board-config
+// Returns current board configuration including game and flag fields.
 router.get('/board-config', async (req, res) => {
   try {
     const boardState = await getBoardState();
@@ -73,10 +92,11 @@ router.get('/board-config', async (req, res) => {
       endBoardOne: boardState.endBoardOne,
       endBoardTwo: boardState.endBoardTwo,
       nextTicket: boardState.nextTicket,
-      // Game logic fields
-      pathwayProgress: boardState.pathwayProgress,       // e.g., 0 = not started, 1 = in-progress, 2 = completed
-      upNextSequence: boardState.upNextSequence,         // sequence order for UpNext mode
-      upNextIndex: boardState.upNextIndex                // current step index in UpNext sequence
+
+      pathwayProgress: boardState.pathwayProgress,
+      upNextSequence: boardState.upNextSequence,
+      upNextIndex: boardState.upNextIndex,
+      expectedBoard: boardState.expectedBoard // For Pathway game mode
     };
     res.status(200).json(data);
   } catch (error) {
@@ -85,33 +105,42 @@ router.get('/board-config', async (req, res) => {
   }
 });
 
+// POST /set-game-mode
+// Sets the game mode and initializes game-specific fields.
 router.post('/set-game-mode', async (req, res) => {
   try {
     console.log("POST /set-game-mode called. Body:", req.body);
     const { gameMode } = req.body;
     if (!gameMode || !['Pathway', 'UpNext'].includes(gameMode)) {
-      console.error("Invalid or missing gameMode.");
+      console.error("Invalid or missing gameMode");
       return res.status(400).json({ error: 'gameMode must be "Pathway" or "UpNext"' });
     }
+
     let updates = { gameModeSelected: gameMode };
+
     if (gameMode === 'Pathway') {
-      // Initialize Pathway game logic: start with progress at 1.
-      updates.pathwayProgress = 1;
-      // Clear any UpNext fields
+      // For Pathway: Initialize progress to 0 and set expectedBoard randomly.
+      updates.pathwayProgress = 0;
+      // Pick a random expected board among 0, 1, 2 (all valid boards)
+      updates.expectedBoard = Math.floor(Math.random() * 3);
+      // Clear UpNext fields
       updates.upNextSequence = [];
       updates.upNextIndex = 0;
     } else if (gameMode === 'UpNext') {
-      // Initialize UpNext game logic with a sample sequence (customize as needed)
-      updates.upNextSequence = [0, 1, 2];
+      // For UpNext: Generate a random permutation of [0, 1, 2]
+      updates.upNextSequence = shuffle([0, 1, 2]);
       updates.upNextIndex = 0;
-      // Reset pathway progress if previously set
+      // Clear Pathway fields
       updates.pathwayProgress = 0;
+      updates.expectedBoard = null;
     }
+
     const newState = await updateBoardState(updates);
     return res.status(200).json({
       message: "Game mode updated and initialized",
       newGameMode: newState.gameModeSelected,
       pathwayProgress: newState.pathwayProgress,
+      expectedBoard: newState.expectedBoard,
       upNextSequence: newState.upNextSequence,
       upNextIndex: newState.upNextIndex
     });
@@ -121,23 +150,45 @@ router.post('/set-game-mode', async (req, res) => {
   }
 });
 
+// POST /board-step
+// Processes a board step event for game logic.
 router.post('/board-step', async (req, res) => {
   try {
-    const { boardID } = req.body; // boardID should be 0, 1, or 2 corresponding to the board's slot.
+    const { boardID } = req.body; // boardID: 0, 1, or 2
     if (boardID === undefined) {
       return res.status(400).json({ error: 'boardID is required' });
     }
+
     const state = await getBoardState();
     const { gameModeSelected } = state;
-    
+
     if (gameModeSelected === 'Pathway') {
-      // Example Pathway logic:
-      // If boardID equals 0 and pathwayProgress is 1, mark as complete.
-      if (boardID === 0 && state.pathwayProgress === 1) {
-        await updateBoardState({ pathwayProgress: 2 });
-        return res.status(200).json({ message: 'Pathway step complete' });
+      // Pathway logic:
+      // Check if the stepped board matches the expected board.
+      if (boardID === state.expectedBoard) {
+        // Correct step; increment pathwayProgress.
+        let newProgress = state.pathwayProgress + 1;
+        let updates = { pathwayProgress: newProgress };
+
+        // If game is completed (e.g., 3 steps), reset game mode.
+        if (newProgress >= 3) {
+          updates.gameModeSelected = "";  // Reset game mode (back to connected state)
+          updates.pathwayProgress = 0;
+          updates.expectedBoard = null;
+          return res.status(200).json({ message: "Pathway game completed, resetting game mode" });
+        } else {
+          // Generate a new expected board excluding the current board.
+          let newExpectedBoard;
+          do {
+            newExpectedBoard = Math.floor(Math.random() * 3);
+          } while (newExpectedBoard === boardID);
+          updates.expectedBoard = newExpectedBoard;
+          await updateBoardState(updates);
+          return res.status(200).json({ message: "Correct step in Pathway mode", pathwayProgress: newProgress, expectedBoard: newExpectedBoard });
+        }
+      } else {
+        return res.status(200).json({ message: "Incorrect step in Pathway mode" });
       }
-      return res.status(200).json({ message: 'Pathway step not processed' });
     } else if (gameModeSelected === 'UpNext') {
       // UpNext logic:
       const { upNextSequence, upNextIndex } = state;
@@ -145,16 +196,21 @@ router.post('/board-step', async (req, res) => {
         return res.status(400).json({ error: 'UpNext sequence not set' });
       }
       if (boardID === upNextSequence[upNextIndex]) {
-        const newIndex = upNextIndex + 1;
+        let newIndex = upNextIndex + 1;
         let updates = { upNextIndex: newIndex };
-        // Optionally: If sequence completed, mark game as complete.
         if (newIndex >= upNextSequence.length) {
-          updates.endGame = true; // You may define endGame behavior in your system.
+          // Sequence complete; reset game mode.
+          updates.gameModeSelected = "";
+          updates.upNextSequence = [];
+          updates.upNextIndex = 0;
+          return res.status(200).json({ message: "UpNext game completed, resetting game mode" });
+        } else {
+          await updateBoardState(updates);
+          return res.status(200).json({ message: "Correct step in UpNext mode", nextExpected: upNextSequence[newIndex], upNextIndex: newIndex });
         }
-        await updateBoardState(updates);
-        return res.status(200).json({ message: 'Correct UpNext step', newIndex });
+      } else {
+        return res.status(200).json({ message: "Incorrect step in UpNext mode" });
       }
-      return res.status(200).json({ message: 'Wrong UpNext step' });
     } else {
       return res.status(200).json({ message: 'No game mode selected' });
     }
@@ -164,13 +220,13 @@ router.post('/board-step', async (req, res) => {
   }
 });
 
-router.get('/board-data-zero', async (req, res) => {
+// GET
+// routes for fetching valid and end board data
+router.get('/board-valid-data-zero', async (req, res) => {
   try {
     const boardState = await getBoardState();
     const data = {
       validBoardZero: boardState.validBoardZero,
-      endBoardZero: boardState.endBoardZero,
-      nextTicket: boardState.nextTicket,
     };
     res.status(200).json(data);
   } catch (error) {
@@ -179,13 +235,11 @@ router.get('/board-data-zero', async (req, res) => {
   }
 });
 
-router.get('/board-data-one', async (req, res) => {
+router.get('/board-valid-data-one', async (req, res) => {
   try {
     const boardState = await getBoardState();
     const data = {
       validBoardOne: boardState.validBoardOne,
-      endBoardOne: boardState.endBoardOne,
-      nextTicket: boardState.nextTicket,
     };
     res.status(200).json(data);
   } catch (error) {
@@ -194,13 +248,50 @@ router.get('/board-data-one', async (req, res) => {
   }
 });
 
-router.get('/board-data-two', async (req, res) => {
+router.get('/board-valid-data-two', async (req, res) => {
   try {
     const boardState = await getBoardState();
     const data = {
       validBoardTwo: boardState.validBoardTwo,
+    };
+    res.status(200).json(data);
+  } catch (error) {
+    console.error('Error fetching board data:', error);
+    res.status(500).json({ error: 'Failed to fetch board data' });
+  }
+});
+
+router.get('/board-end-data-zero', async (req, res) => {
+  try {
+    const boardState = await getBoardState();
+    const data = {
+      endBoardZero: boardState.endBoardZero,
+    };
+    res.status(200).json(data);
+  } catch (error) {
+    console.error('Error fetching board data:', error);
+    res.status(500).json({ error: 'Failed to fetch board data' });
+  }
+});
+
+router.get('/board-end-data-one', async (req, res) => {
+  try {
+    const boardState = await getBoardState();
+    const data = {
+      endBoardOne: boardState.endBoardOne,
+    };
+    res.status(200).json(data);
+  } catch (error) {
+    console.error('Error fetching board data:', error);
+    res.status(500).json({ error: 'Failed to fetch board data' });
+  }
+});
+
+router.get('/board-end-data-two', async (req, res) => {
+  try {
+    const boardState = await getBoardState();
+    const data = {
       endBoardTwo: boardState.endBoardTwo,
-      nextTicket: boardState.nextTicket,
     };
     res.status(200).json(data);
   } catch (error) {

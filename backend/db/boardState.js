@@ -15,10 +15,10 @@ const getBoardState = async () => {
       gameModeSelected: '',
       ledBrightness: 0,
 
-      validBoardZero: 0,
+      validBoardZero: 1,
       validBoardOne: 0,
       validBoardTwo: 0,
-      endBoardZero: 0,
+      endBoardZero: 1,
       endBoardOne: 0,
       endBoardTwo: 0,
 
