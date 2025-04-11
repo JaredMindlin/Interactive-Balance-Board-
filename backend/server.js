@@ -85,6 +85,7 @@ app.get('/api/board/board-config', async (req, res) => {
     const data = {
       gameModeSelected: boardState.gameModeSelected,
       ledBrightness: boardState.ledBrightness,
+      assignedID: boardState.assignedID,
       validBoardZero: boardState.validBoardZero,
       validBoardOne: boardState.validBoardOne,
       validBoardTwo: boardState.validBoardTwo,
