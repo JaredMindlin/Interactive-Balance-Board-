@@ -78,6 +78,39 @@ app.post('/api/board/register-board', async (req, res) => {
   }
 });
 
+// GET /api/board/register-board - Registers a new board (max 3). Assigns ID based on nextTicket.
+app.get('/api/board/register-board', async (req, res) => {
+  try {
+    const boardState = await getBoardState();
+
+    if (boardState.nextTicket > 3) {
+      return res.status(400).json({ error: "Max boards reached (3)." });
+    }
+
+    const assignedID = boardState.nextTicket;
+    const newTicket = assignedID + 1;
+    let updateField = {};
+    if (assignedID === 1) {
+      updateField.validBoardZero = 1; // Board 1 → index 0
+    } else if (assignedID === 2) {
+      updateField.validBoardOne = 1;  // Board 2 → index 1
+    } else if (assignedID === 3) {
+      updateField.validBoardTwo = 1;  // Board 3 → index 2
+    }
+    updateField.nextTicket = newTicket;
+
+    await updateBoardState(updateField);
+
+    return res.status(200).json({
+      message: "Board registered successfully",
+      assignedID
+    });
+  } catch (error) {
+    console.error('Error registering board:', error);
+    res.status(500).json({ error: 'Error registering board' });
+  }
+});
+
 // GET /api/board/board-config - Returns current board configuration including game and flag fields.
 app.get('/api/board/board-config', async (req, res) => {
   try {
@@ -85,7 +118,6 @@ app.get('/api/board/board-config', async (req, res) => {
     const data = {
       gameModeSelected: boardState.gameModeSelected,
       ledBrightness: boardState.ledBrightness,
-      assignedID: boardState.assignedID,
       validBoardZero: boardState.validBoardZero,
       validBoardOne: boardState.validBoardOne,
       validBoardTwo: boardState.validBoardTwo,
