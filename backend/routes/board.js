@@ -164,4 +164,49 @@ router.post('/board-step', async (req, res) => {
   }
 });
 
+router.get('/board-data-zero', async (req, res) => {
+  try {
+    const boardState = await getBoardState();
+    const data = {
+      validBoardZero: boardState.validBoardZero,
+      endBoardZero: boardState.endBoardZero,
+      nextTicket: boardState.nextTicket,
+    };
+    res.status(200).json(data);
+  } catch (error) {
+    console.error('Error fetching board data:', error);
+    res.status(500).json({ error: 'Failed to fetch board data' });
+  }
+});
+
+router.get('/board-data-one', async (req, res) => {
+  try {
+    const boardState = await getBoardState();
+    const data = {
+      validBoardOne: boardState.validBoardOne,
+      endBoardOne: boardState.endBoardOne,
+      nextTicket: boardState.nextTicket,
+    };
+    res.status(200).json(data);
+  } catch (error) {
+    console.error('Error fetching board data:', error);
+    res.status(500).json({ error: 'Failed to fetch board data' });
+  }
+});
+
+router.get('/board-data-two', async (req, res) => {
+  try {
+    const boardState = await getBoardState();
+    const data = {
+      validBoardTwo: boardState.validBoardTwo,
+      endBoardTwo: boardState.endBoardTwo,
+      nextTicket: boardState.nextTicket,
+    };
+    res.status(200).json(data);
+  } catch (error) {
+    console.error('Error fetching board data:', error);
+    res.status(500).json({ error: 'Failed to fetch board data' });
+  }
+});
+
 module.exports = router;
