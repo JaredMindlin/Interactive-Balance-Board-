@@ -15,13 +15,19 @@ const getBoardState = async () => {
       gameModeSelected: '',
       ledBrightness: 0,
 
-      validBoards: [false, false, false], // for up to 3 boards
-      endBoard: [false, false, false],    // for up to 3 boards
-      nextTicket: 1                       // start ticket numbering at 1
+      validBoardZero: 0,
+      validBoardOne: 0,
+      validBoardTwo: 0,
+      endBoardZero: 0,
+      endBoardOne: 0,
+      endBoardTwo: 0,
+
+      nextTicket: 1
     };
     await collection.insertOne(boardState);
   }
 
+  // Initialize missing fields if needed
   if (boardState.ledBrightness === undefined) {
     boardState.ledBrightness = 0;
     await collection.updateOne({}, { $set: { ledBrightness: 0 } });
@@ -31,14 +37,32 @@ const getBoardState = async () => {
     await collection.updateOne({}, { $set: { areLEDsOn: false } });
   }
 
-  if (!Array.isArray(boardState.validBoards)) {
-    boardState.validBoards = [false, false, false];
-    await collection.updateOne({}, { $set: { validBoards: boardState.validBoards } });
+  if (boardState.validBoardZero === undefined) {
+    boardState.validBoardZero = 0;
+    await collection.updateOne({}, { $set: { validBoardZero: 0 } });
   }
-  if (!Array.isArray(boardState.endBoard)) {
-    boardState.endBoard = [false, false, false];
-    await collection.updateOne({}, { $set: { endBoard: boardState.endBoard } });
+  if (boardState.validBoardOne === undefined) {
+    boardState.validBoardOne = 0;
+    await collection.updateOne({}, { $set: { validBoardOne: 0 } });
   }
+  if (boardState.validBoardTwo === undefined) {
+    boardState.validBoardTwo = 0;
+    await collection.updateOne({}, { $set: { validBoardTwo: 0 } });
+  }
+
+  if (boardState.endBoardZero === undefined) {
+    boardState.endBoardZero = 0;
+    await collection.updateOne({}, { $set: { endBoardZero: 0 } });
+  }
+  if (boardState.endBoardOne === undefined) {
+    boardState.endBoardOne = 0;
+    await collection.updateOne({}, { $set: { endBoardOne: 0 } });
+  }
+  if (boardState.endBoardTwo === undefined) {
+    boardState.endBoardTwo = 0;
+    await collection.updateOne({}, { $set: { endBoardTwo: 0 } });
+  }
+
   if (boardState.nextTicket === undefined) {
     boardState.nextTicket = 1;
     await collection.updateOne({}, { $set: { nextTicket: 1 } });
@@ -57,8 +81,14 @@ const updateBoardState = async (updatedFields) => {
     'deviceCount',
     'gameModeSelected',
     'ledBrightness',
-    'validBoards',
-    'endBoard',
+
+    'validBoardZero',
+    'validBoardOne',
+    'validBoardTwo',
+    'endBoardZero',
+    'endBoardOne',
+    'endBoardTwo',
+
     'nextTicket'
   ];
 
