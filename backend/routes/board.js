@@ -38,7 +38,6 @@ router.post('/register-board', async (req, res) => {
     const assignedID = boardState.nextTicket;
     const newTicket = assignedID + 1;
 
-    // Map assignedID to the corresponding field
     let updateField = {};
     if (assignedID === 1) {
       updateField.validBoardZero = 1; // Board 1 corresponds to index 0
@@ -49,7 +48,6 @@ router.post('/register-board', async (req, res) => {
     }
     updateField.nextTicket = newTicket;
 
-    // Update the board state
     await updateBoardState(updateField);
 
     return res.status(200).json({
@@ -65,20 +63,21 @@ router.post('/register-board', async (req, res) => {
 router.get('/board-config', async (req, res) => {
   try {
     const boardState = await getBoardState();
-
     const data = {
       gameModeSelected: boardState.gameModeSelected,
       ledBrightness: boardState.ledBrightness,
-      // New individual flag fields
       validBoardZero: boardState.validBoardZero,
       validBoardOne: boardState.validBoardOne,
       validBoardTwo: boardState.validBoardTwo,
       endBoardZero: boardState.endBoardZero,
       endBoardOne: boardState.endBoardOne,
       endBoardTwo: boardState.endBoardTwo,
-      nextTicket: boardState.nextTicket
+      nextTicket: boardState.nextTicket,
+      // Game logic fields
+      pathwayProgress: boardState.pathwayProgress,       // e.g., 0 = not started, 1 = in-progress, 2 = completed
+      upNextSequence: boardState.upNextSequence,         // sequence order for UpNext mode
+      upNextIndex: boardState.upNextIndex                // current step index in UpNext sequence
     };
-
     res.status(200).json(data);
   } catch (error) {
     console.error('Error fetching board config:', error);
@@ -86,37 +85,82 @@ router.get('/board-config', async (req, res) => {
   }
 });
 
-router.post('/update-board-flags', async (req, res) => {
+router.post('/set-game-mode', async (req, res) => {
   try {
-    const {
-      validBoardZero,
-      validBoardOne,
-      validBoardTwo,
-      endBoardZero,
-      endBoardOne,
-      endBoardTwo
-    } = req.body;
-    let updates = {};
-    if (validBoardZero !== undefined) updates.validBoardZero = validBoardZero;
-    if (validBoardOne !== undefined) updates.validBoardOne = validBoardOne;
-    if (validBoardTwo !== undefined) updates.validBoardTwo = validBoardTwo;
-    if (endBoardZero !== undefined) updates.endBoardZero = endBoardZero;
-    if (endBoardOne !== undefined) updates.endBoardOne = endBoardOne;
-    if (endBoardTwo !== undefined) updates.endBoardTwo = endBoardTwo;
-
+    console.log("POST /set-game-mode called. Body:", req.body);
+    const { gameMode } = req.body;
+    if (!gameMode || !['Pathway', 'UpNext'].includes(gameMode)) {
+      console.error("Invalid or missing gameMode.");
+      return res.status(400).json({ error: 'gameMode must be "Pathway" or "UpNext"' });
+    }
+    let updates = { gameModeSelected: gameMode };
+    if (gameMode === 'Pathway') {
+      // Initialize Pathway game logic: start with progress at 1.
+      updates.pathwayProgress = 1;
+      // Clear any UpNext fields
+      updates.upNextSequence = [];
+      updates.upNextIndex = 0;
+    } else if (gameMode === 'UpNext') {
+      // Initialize UpNext game logic with a sample sequence (customize as needed)
+      updates.upNextSequence = [0, 1, 2];
+      updates.upNextIndex = 0;
+      // Reset pathway progress if previously set
+      updates.pathwayProgress = 0;
+    }
     const newState = await updateBoardState(updates);
     return res.status(200).json({
-      message: "Board flags updated",
-      validBoardZero: newState.validBoardZero,
-      validBoardOne: newState.validBoardOne,
-      validBoardTwo: newState.validBoardTwo,
-      endBoardZero: newState.endBoardZero,
-      endBoardOne: newState.endBoardOne,
-      endBoardTwo: newState.endBoardTwo
+      message: "Game mode updated and initialized",
+      newGameMode: newState.gameModeSelected,
+      pathwayProgress: newState.pathwayProgress,
+      upNextSequence: newState.upNextSequence,
+      upNextIndex: newState.upNextIndex
     });
   } catch (error) {
-    console.error("Error updating board flags:", error);
-    return res.status(500).json({ error: "Error updating board flags" });
+    console.error("Error setting game mode:", error);
+    return res.status(500).json({ error: "Server error setting game mode" });
+  }
+});
+
+router.post('/board-step', async (req, res) => {
+  try {
+    const { boardID } = req.body; // boardID should be 0, 1, or 2 corresponding to the board's slot.
+    if (boardID === undefined) {
+      return res.status(400).json({ error: 'boardID is required' });
+    }
+    const state = await getBoardState();
+    const { gameModeSelected } = state;
+    
+    if (gameModeSelected === 'Pathway') {
+      // Example Pathway logic:
+      // If boardID equals 0 and pathwayProgress is 1, mark as complete.
+      if (boardID === 0 && state.pathwayProgress === 1) {
+        await updateBoardState({ pathwayProgress: 2 });
+        return res.status(200).json({ message: 'Pathway step complete' });
+      }
+      return res.status(200).json({ message: 'Pathway step not processed' });
+    } else if (gameModeSelected === 'UpNext') {
+      // UpNext logic:
+      const { upNextSequence, upNextIndex } = state;
+      if (!Array.isArray(upNextSequence) || upNextSequence.length === 0) {
+        return res.status(400).json({ error: 'UpNext sequence not set' });
+      }
+      if (boardID === upNextSequence[upNextIndex]) {
+        const newIndex = upNextIndex + 1;
+        let updates = { upNextIndex: newIndex };
+        // Optionally: If sequence completed, mark game as complete.
+        if (newIndex >= upNextSequence.length) {
+          updates.endGame = true; // You may define endGame behavior in your system.
+        }
+        await updateBoardState(updates);
+        return res.status(200).json({ message: 'Correct UpNext step', newIndex });
+      }
+      return res.status(200).json({ message: 'Wrong UpNext step' });
+    } else {
+      return res.status(200).json({ message: 'No game mode selected' });
+    }
+  } catch (error) {
+    console.error("Error processing board step:", error);
+    return res.status(500).json({ error: "Server error processing board step" });
   }
 });
 

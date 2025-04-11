@@ -22,12 +22,17 @@ const getBoardState = async () => {
       endBoardOne: 0,
       endBoardTwo: 0,
 
-      nextTicket: 1
+      nextTicket: 1,
+
+      pathwayProgress: 0,       // 0 = not started, 1 = in-progress, 2 = completed
+      upNextSequence: [],       // Array holding the order for Up Next game mode
+      upNextIndex: 0            // Index of the current step for Up Next
     };
     await collection.insertOne(boardState);
   }
 
   // Initialize missing fields if needed
+
   if (boardState.ledBrightness === undefined) {
     boardState.ledBrightness = 0;
     await collection.updateOne({}, { $set: { ledBrightness: 0 } });
@@ -68,6 +73,20 @@ const getBoardState = async () => {
     await collection.updateOne({}, { $set: { nextTicket: 1 } });
   }
 
+  // [NEW CODE for Game Logic Initialization]
+  if (boardState.pathwayProgress === undefined) {
+    boardState.pathwayProgress = 0;
+    await collection.updateOne({}, { $set: { pathwayProgress: 0 } });
+  }
+  if (boardState.upNextSequence === undefined) {
+    boardState.upNextSequence = [];
+    await collection.updateOne({}, { $set: { upNextSequence: [] } });
+  }
+  if (boardState.upNextIndex === undefined) {
+    boardState.upNextIndex = 0;
+    await collection.updateOne({}, { $set: { upNextIndex: 0 } });
+  }
+
   return boardState;
 };
 
@@ -89,7 +108,12 @@ const updateBoardState = async (updatedFields) => {
     'endBoardOne',
     'endBoardTwo',
 
-    'nextTicket'
+    'nextTicket',
+
+    // game logic fields
+    'pathwayProgress',
+    'upNextSequence',
+    'upNextIndex'
   ];
 
   const fieldsToUpdate = {};
