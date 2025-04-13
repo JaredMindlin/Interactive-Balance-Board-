@@ -17,6 +17,18 @@
 // Node.JS Backend Server Routes
 #define SERVER_URL "http://172.20.10.6:5000/update-device-count"
 
+String ipAddress;
+String GameAddress = ":5000/game-mode";
+String BrightnessAddress = ":5000/brightness";
+String FetchBoardIDAddress = ":5000/api/board/register-board";
+String FetchBoardZeroDataAddress = ":5000/api/board/board-valid-data-zero";
+String FetchBoardZeroEndAddress = ":5000/api/board/board-end-data-zero";
+String FetchBoardOneDataAddress = ":5000/api/board/board-valid-data-one";
+String FetchBoardOneEndAddress = ":5000/api/board/board-end-data-one";
+String FetchBoardTwoDataAddress = ":5000/api/board/board-valid-data-two";
+String FetchBoardTwoEndAddress = ":5000/api/board/board-end-data-two";
+
+
 int pressurePin = A4;
 Adafruit_NeoPixel NeoPixel(NUM_PIXELS, PIN_NEO_PIXEL, NEO_GRB + NEO_KHZ800);
 int boardBrightness = 255;
@@ -61,6 +73,27 @@ void youWin() {
 }
 
 // Define Helper Functions
+void updateRoutes() {
+  GameAddress = "http://" + ipAddress + GameAddress;
+  BrightnessAddress = "http://" + ipAddress + BrightnessAddress;
+  FetchBoardIDAddress = "http://" + ipAddress + FetchBoardIDAddress;
+  FetchBoardZeroDataAddress = "http://" + ipAddress + FetchBoardZeroDataAddress;
+  FetchBoardZeroEndAddress = "http://" + ipAddress + FetchBoardZeroEndAddress;
+  FetchBoardOneDataAddress = "http://" + ipAddress + FetchBoardOneDataAddress;
+  FetchBoardOneEndAddress = "http://" + ipAddress + FetchBoardOneEndAddress;
+  FetchBoardTwoDataAddress = "http://" + ipAddress + FetchBoardTwoDataAddress;
+  FetchBoardTwoEndAddress = "http://" + ipAddress + FetchBoardTwoEndAddress;
+  // Serial.println("Game Address: " + GameAddress);
+  // Serial.println("Brightness Address: " + BrightnessAddress);
+  // Serial.println("Fetch Board ID Address: " + FetchBoardIDAddress);
+  // Serial.println("Fetch Board 0 Data Address: " + FetchBoardZeroDataAddress);
+  // Serial.println("Fetch Board 0 End Address: " + FetchBoardZeroEndAddress);
+  // Serial.println("Fetch Board 1 Data Address: " + FetchBoardOneDataAddress);
+  // Serial.println("Fetch Board 1 End Address: " + FetchBoardOneEndAddress);
+  // Serial.println("Fetch Board 2 Data Address: " + FetchBoardTwoDataAddress);
+  // Serial.println("Fetch Board 2 End Address: " + FetchBoardTwoEndAddress);
+}
+
 void setLEDs(uint8_t r, uint8_t g, uint8_t b) {
   for (int pixel = 0; pixel < NUM_PIXELS; pixel++) {
       NeoPixel.setPixelColor(pixel, NeoPixel.Color(r, g, b));
@@ -145,7 +178,6 @@ void sendDataToServer() {
     Serial.print("HTTP Response code: ");
     // If -1, request failed
     Serial.println(httpResponseCode);  
-
     http.end();
   }
   else {
@@ -179,7 +211,7 @@ void sendBoardStatusToServer(String boardID, bool isOccupied) {
 void fetchBrightness() {
   if (WiFi.status() == WL_CONNECTED) {
       HTTPClient http;
-      http.begin("http://172.20.10.6:5000/brightness");
+      http.begin(BrightnessAddress);
       
       int httpResponseCode = http.GET();  // Send GET request
 
@@ -212,7 +244,7 @@ void fetchBrightness() {
 void fetchGameMode() {
     if (WiFi.status() == WL_CONNECTED) {
       HTTPClient http;
-      http.begin("http://172.20.10.6:5000/game-mode");
+      http.begin(GameAddress);
       
       int httpResponseCode = http.GET();  // Send GET request
 
@@ -260,7 +292,7 @@ void fetchGameMode() {
 void fetchBoardID() {
   if (WiFi.status() == WL_CONNECTED) {
       HTTPClient http;
-      http.begin("http://172.20.10.6:5000/api/board/register-board");
+      http.begin(FetchBoardIDAddress);
       
       int httpResponseCode = http.GET();  // Send GET request
       if (httpResponseCode > 0) {
@@ -290,13 +322,13 @@ int fetchBoardData() {
   if (WiFi.status() == WL_CONNECTED) {
       HTTPClient http;
       if (boardID == 0) {
-        http.begin("http://172.20.10.6:5000/api/board/board-valid-data-zero");
+        http.begin(FetchBoardZeroDataAddress);
       }
       else if (boardID == 1) {
-        http.begin("http://172.20.10.6:5000/api/board/board-valid-data-one");
+        http.begin(FetchBoardOneDataAddress);
       }
       else if (boardID == 2) {
-        http.begin("http://172.20.10.6:5000/api/board/board-valid-data-two");
+        http.begin(FetchBoardTwoDataAddress);
       }
       int httpResponseCode = http.GET();  // Send GET request
       if (httpResponseCode > 0) {
@@ -308,13 +340,13 @@ int fetchBoardData() {
       }
 
       if (boardID == 0) {
-        http.begin("http://172.20.10.6:5000/api/board/board-end-data-zero");
+        http.begin(FetchBoardZeroEndAddress);
       }
       else if (boardID == 1) {
-        http.begin("http://172.20.10.6:5000/api/board/board-end-data-one");
+        http.begin(FetchBoardOneEndAddress);
       }
       else if (boardID == 2) {
-        http.begin("http://172.20.10.6:5000/api/board/board-end-data-two");
+        http.begin(FetchBoardTwoEndAddress);
       }
       httpResponseCode = http.GET();  // Send GET request
       if (httpResponseCode > 0) {
@@ -351,7 +383,12 @@ void setup() {
       delay(1000);
       Serial.print(".");
   }
-  Serial.println("\nConnected to WiFi!");
+  String iptemp = WiFi.localIP().toString();
+  Serial.println("\nConnected to WiFi with Local IP: " + iptemp);
+  iptemp[WiFi.localIP().toString().length() - 1] = '6';
+  ipAddress = iptemp;
+  Serial.println("\nRoute IP: " + ipAddress);
+  updateRoutes();
   // Assign this board a unique ID
   fetchBoardID();
   delay(2000);
