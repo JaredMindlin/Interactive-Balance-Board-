@@ -6,13 +6,15 @@
 #include <ArduinoJson.h>
 // Arduino LED Strip Library/Header File
 #include <Adafruit_NeoPixel.h>
+// Wifi Library Mananger for SSID and password security
+#include <WiFiManager.h>
+// String is Numeric Checker
+#include <ctype.h>
 
 #define PIN_NEO_PIXEL 2  // The ESP32 pin GPIO2 connected to NeoPixel
 #define NUM_PIXELS 30     // The number of LEDs (pixels) on NeoPixel LED strip
 
-// Wi-Fi credentials
-#define SSID "Bruno iPhone"
-#define PASSWORD "bruhbutton"
+// Node.JS Backend Server Routes
 #define SERVER_URL "http://172.20.10.6:5000/update-device-count"
 
 int pressurePin = A4;
@@ -262,17 +264,20 @@ void fetchBoardID() {
       
       int httpResponseCode = http.GET();  // Send GET request
       if (httpResponseCode > 0) {
-          String response = http.getString();
-          Serial.println("ID Response: " + response);
-          int tempID = response.substring(response.length() - 2, response.length() - 1).toInt();
-          Serial.println("Captured Number: " + response.substring(response.length() - 2, response.length() - 1));
+        String response = http.getString();
+        Serial.println("ID Response: " + response);
+        char capture = response.substring(response.length() - 2, response.length() - 1).charAt(0);
+        if (isdigit(capture)) {
+          int tempID = capture - '0';
+          Serial.printf("Captured Number: %d\n", tempID);
           if (boardID == -1) {
             boardID = tempID;
           }
+        }
       }
       else {
         Serial.println("HTTP Request for boardID failed");
-      }    
+      }
       http.end();
   } 
   else {
@@ -332,10 +337,15 @@ void setup() {
   // Pin set up
   pinMode(pressurePin, INPUT_PULLUP);
   setLEDs(0, 0, 0);
-  NeoPixel.begin();  // initialize NeoPixel strip object
-  // Connect to WiFi
-  WiFi.begin(SSID, PASSWORD);
-  Serial.print("Connecting to WiFi...");
+  NeoPixel.begin();
+  // Initialize WiFi Manager
+  WiFiManager wm;
+  // Try to connect to last known connection
+  if (!wm.autoConnect("User SSID", "User Password")) {
+    Serial.print("failed to connect and hit timeout");
+    ESP.restart();
+    delay(1000);
+  }
   // Wait on connection
   while (WiFi.status() != WL_CONNECTED) {
       delay(1000);
@@ -376,7 +386,7 @@ void loop() {
   Serial.printf("BoardID: %d\n", boardID);
   Serial.printf("Valid Boolean: %d\n", isBoardValid);
   Serial.printf("End Boolean: %d\n", isBoardEndPoint);
-  fetchBoardData();
+  //fetchBoardData();
   NeoPixel.show();
   Serial.printf("End of loop reached\n");
   delay(5000);
