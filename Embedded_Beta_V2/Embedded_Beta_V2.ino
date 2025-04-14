@@ -110,7 +110,7 @@ void adjustBrightness(int &currBrightness, int nodePacket) {
 
 void PathWayGameMode() {
   // GET PULL BOARD DATA
-  
+  fetchBoardData();
   while (currentState == PATHWAY) {
     int sensorValue = analogRead(pressurePin);
     Serial.printf("Sensor Value: %d\n", sensorValue);
@@ -140,7 +140,7 @@ void PathWayGameMode() {
 
 void UpNextGameMode() {
   // GET PULL BOARD DATA
-  
+  fetchBoardData();
   while (currentState == UPNEXT) {
     int sensorValue = analogRead(pressurePin);
     Serial.printf("Sensor Value: %d\n", sensorValue);
@@ -245,11 +245,8 @@ void fetchGameMode() {
     if (WiFi.status() == WL_CONNECTED) {
       HTTPClient http;
       http.begin(GameAddress);
-      
       int httpResponseCode = http.GET();  // Send GET request
-
       int tempGameMode = lastGameMode; // Variable to prevent constant gamemode reassignment
-
       if (httpResponseCode > 0) {
         String response = http.getString();
         if (response.equals("{\"gameModeSelected\":\"Pathway\"}")) {
@@ -318,45 +315,60 @@ void fetchBoardID() {
 }
 
 // HTTP Request for retreiving the vector of valid boards
-int fetchBoardData() {
+void fetchBoardData() {
   if (WiFi.status() == WL_CONNECTED) {
-      HTTPClient http;
-      if (boardID == 0) {
-        http.begin(FetchBoardZeroDataAddress);
-      }
-      else if (boardID == 1) {
-        http.begin(FetchBoardOneDataAddress);
-      }
-      else if (boardID == 2) {
-        http.begin(FetchBoardTwoDataAddress);
-      }
-      int httpResponseCode = http.GET();  // Send GET request
-      if (httpResponseCode > 0) {
-          String response = http.getString();
-          Serial.printf("Board Valid Data: %d\n", response);
-      }
-      else {
-        Serial.println("HTTP Request for Valid Boards failed");
-      }
+    String delimiter1 = ":";
+    String delimiter2 = "}";
+    int pos1;
+    int pos2;
+    String substring;
+    HTTPClient http;
+    if (boardID == 0) {
+      http.begin(FetchBoardZeroDataAddress);
+    }
+    else if (boardID == 1) {
+      http.begin(FetchBoardOneDataAddress);
+    }
+    else if (boardID == 2) {
+      http.begin(FetchBoardTwoDataAddress);
+    }
+    int httpResponseCode = http.GET();  // Send GET request
+    if (httpResponseCode > 0) {
+      String response = http.getString();
+      pos1 = response.indexOf(delimiter1);
+      pos2 = response.indexOf(delimiter2, pos1 + 1);
+      substring = response.substring(pos1 + 1, pos2);
+      isBoardValid = substring.toInt();
+      Serial.printf("Valid Data: %d\n", isBoardValid);
+    }
+    else {
+      Serial.println("HTTP Request for Valid Boards failed");
+    }
 
-      if (boardID == 0) {
-        http.begin(FetchBoardZeroEndAddress);
-      }
-      else if (boardID == 1) {
-        http.begin(FetchBoardOneEndAddress);
-      }
-      else if (boardID == 2) {
-        http.begin(FetchBoardTwoEndAddress);
-      }
-      httpResponseCode = http.GET();  // Send GET request
-      if (httpResponseCode > 0) {
-          String response = http.getString();
-          Serial.printf("Board End Data: %d\n", response);
-      }
-      else {
-        Serial.println("HTTP Request for End Boards failed");
-      }
-      http.end();
+    http.end();
+
+    if (boardID == 0) {
+      http.begin(FetchBoardZeroEndAddress);
+    }
+    else if (boardID == 1) {
+      http.begin(FetchBoardOneEndAddress);
+    }
+    else if (boardID == 2) {
+      http.begin(FetchBoardTwoEndAddress);
+    }
+    httpResponseCode = http.GET();  // Send GET request
+    if (httpResponseCode > 0) {
+      String response = http.getString();
+      pos1 = response.indexOf(delimiter1);
+      pos2 = response.indexOf(delimiter2, pos1 + 1);
+      substring = response.substring(pos1 + 1, pos2);
+      isBoardEndPoint = substring.toInt();
+      Serial.printf("End Data: %d\n", isBoardEndPoint);
+    }
+    else {
+      Serial.println("HTTP Request for End Boards failed");
+    }
+    http.end();
   } 
   else {
     Serial.println("WiFi Disconnected - End Boards");
@@ -391,6 +403,7 @@ void setup() {
   updateRoutes();
   // Assign this board a unique ID
   fetchBoardID();
+  sendDataToServer();
   delay(2000);
 }
 
@@ -423,7 +436,9 @@ void loop() {
   Serial.printf("BoardID: %d\n", boardID);
   Serial.printf("Valid Boolean: %d\n", isBoardValid);
   Serial.printf("End Boolean: %d\n", isBoardEndPoint);
-  //fetchBoardData();
+  delay(5000);
+  fetchBoardData();
+  delay(5000);
   NeoPixel.show();
   Serial.printf("End of loop reached\n");
   delay(5000);
