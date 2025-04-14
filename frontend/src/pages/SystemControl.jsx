@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import './SystemControl.css';
 import SystemContext from '../SystemContext';
-import axios from 'axios';
 
 function SystemControl() {
   const {
@@ -91,7 +90,7 @@ function SystemControl() {
             <p className="plank-count">{deviceCount}</p>
           </div>
 
-          {/* [REMOVED CODE for LED on/off button] */}
+          {/* */}
 
           {/* LED Brightness Slider */}
           <div className="status-item">
@@ -107,8 +106,7 @@ function SystemControl() {
             <span>{ledBrightness}</span>
           </div>
 
-          {/* [NEW or MODIFIED CODE for LED slider logic]
-              Optionally show if areLEDsOn is true/false */}
+          {/* LED */}
           <div className="status-item">
             <h3>LED State:</h3>
             <p

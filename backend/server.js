@@ -193,50 +193,84 @@ app.get("/game-mode", async (req, res) => {
 app.post("/set-game-mode", async (req, res) => {
   try {
     console.log("POST /set-game-mode called. Body:", req.body);
-
-    // 1) Extract gameMode from the request body
+    
+    // 1) Extract gameMode from the request body.
+    // Allow an empty string for resetting the game mode.
     const { gameMode } = req.body;
-    if (!gameMode) {
+    if (gameMode === undefined) {
       console.error("No gameMode provided in request body!");
       return res.status(400).json({ error: "gameMode is required in request body" });
     }
-
-    // 2) Update DB
-    let boardState = await getBoardState();
-    console.log(`Current gameModeSelected=${boardState.gameModeSelected}, updating to=${gameMode}`);
-    await updateBoardState({ gameModeSelected: gameMode });
-
-    // 3) Notify ESP32 about the new mode (optional step)
-    //    Make sure your ESP32 code handles POST /set-mode
+    
+    // 2) Prepare the updates object.
+    // If gameMode is an empty string, then we reset all game mode–related fields.
+    let updates = { gameModeSelected: gameMode };
+    if (gameMode === "") {
+      updates.pathwayProgress = 0;
+      updates.upNextSequence = [];
+      updates.upNextIndex = 0;
+      updates.expectedBoard = null;
+      updates.nextTicket = 0;
+      updates.validBoardZero = 0;
+      updates.validBoardOne = 0;
+      updates.validBoardTwo = 0;
+      updates.endBoardZero = 0;
+      updates.endBoardOne = 0;
+      updates.endBoardTwo = 0;
+    } else if (gameMode === "Pathway") {
+      // For Pathway: initialize progress to 0 and set a random expected board.
+      updates.pathwayProgress = 0;
+      updates.expectedBoard = Math.floor(Math.random() * 3);
+      // Clear UpNext-specific fields.
+      updates.upNextSequence = [];
+      updates.upNextIndex = 0;
+    } else if (gameMode === "UpNext") {
+      // For UpNext: generate a random permutation of [0,1,2] using your shuffle helper.
+      updates.upNextSequence = shuffle([0, 1, 2]);
+      updates.upNextIndex = 0;
+      // Clear Pathway-specific fields.
+      updates.pathwayProgress = 0;
+      updates.expectedBoard = null;
+    } else {
+      // If a non-empty, invalid game mode is provided.
+      return res.status(400).json({ error: 'gameMode must be "Pathway", "UpNext", or "" (to reset)' });
+    }
+    
+    // 3) Update DB with the new game mode and related fields.
+    const newState = await updateBoardState(updates);
+    
+    // 4) Optionally, forward the game mode to the ESP32.
     console.log(`Forwarding gameMode="${gameMode}" to ESP32 at ${ESP32_URL}`);
     const espResponse = await fetch(ESP32_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ gameMode })
     });
-
     if (!espResponse.ok) {
       console.error("ESP32 responded with an error", espResponse.status);
       return res.status(500).json({
         error: `Failed to notify ESP32: HTTP ${espResponse.status}`
       });
     }
-
     const espData = await espResponse.json();
-
-    // 4) Return success
     console.log("ESP32 response data:", espData);
+    
+    // 5) Return success with the updated state.
     return res.status(200).json({
-      message: "Game mode updated in DB and sent to ESP32",
-      newGameMode: gameMode,
-      espData
+      message: "Game mode updated and initialized",
+      newGameMode: newState.gameModeSelected,
+      pathwayProgress: newState.pathwayProgress,
+      expectedBoard: newState.expectedBoard,
+      upNextSequence: newState.upNextSequence,
+      upNextIndex: newState.upNextIndex
     });
-
   } catch (error) {
     console.error("Error setting game mode:", error);
     return res.status(500).json({ error: "Server error setting game mode" });
   }
 });
+
+
 
 // POST /api/board/board-step - Processes a board step event for game logic.
 app.post('/api/board/board-step', async (req, res) => {

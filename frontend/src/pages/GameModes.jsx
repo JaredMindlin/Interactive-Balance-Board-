@@ -43,37 +43,6 @@ function GameModes() {
       console.error('Error sending game mode to backend:', error);
     }
   };
-
-  /**
-   * resetGameMode:
-   */
-  const resetGameMode = async () => {
-    try {
-      const response = await fetch('http://172.20.10.4:5000/api/board/update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          gameModeSelected: "",
-          pathwayProgress: 0,
-          upNextSequence: [],
-          upNextIndex: 0,
-          expectedBoard: null,
-          nextTicket: 0,
-          validBoardZero: 0,
-          validBoardOne: 0,
-          validBoardTwo: 0,
-          endBoardZero: 0,
-          endBoardOne: 0,
-          endBoardTwo: 0
-        }),
-      });
-      const data = await response.json();
-      console.log('Reset game mode response:', data);
-      selectGameMode(''); // Update front-end context
-    } catch (error) {
-      console.error('Error resetting game mode:', error);
-    }
-  };
   
   return (
     <div className="game-modes-container">
@@ -115,7 +84,7 @@ function GameModes() {
         <div className="game-card">
           <img
             id="Pathway-image"
-            src={`${process.env.PUBLIC_URL}/Pathway.png`}
+            src={`${process.env.PUBLIC_URL}/PathwayV2.png`}
             alt="Pathway Game"
             className={`game-image ${
               gameModeSelected === 'Pathway' ? 'flash' : ''
@@ -137,7 +106,7 @@ function GameModes() {
         <div className="game-card">
           <img
             id="UpNext-image"
-            src={`${process.env.PUBLIC_URL}/UpNext.png`}
+            src={`${process.env.PUBLIC_URL}/UpNextV2.png`}
             alt="Up Next Game"
             className={`game-image ${
               gameModeSelected === 'UpNext' ? 'flash' : ''
@@ -154,17 +123,6 @@ function GameModes() {
             {gameModeSelected === 'UpNext' ? 'Unselect Up Next' : 'Select Up Next'}
           </button>
         </div>
-      </div>
-
-      {/* Reset Button */}
-      <div style={{ marginTop: '20px' }}>
-        <button
-          className="game-select-button"
-          style={{ backgroundColor: '#ff4d4d' }}
-          onClick={resetGameMode}
-        >
-          Reset Game Mode
-        </button>
       </div>
     </div>
   );

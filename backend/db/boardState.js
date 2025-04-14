@@ -15,10 +15,10 @@ const getBoardState = async () => {
       gameModeSelected: '',
       ledBrightness: 0,
 
-      validBoardZero: 1,
+      validBoardZero: 0,
       validBoardOne: 0,
       validBoardTwo: 0,
-      endBoardZero: 1,
+      endBoardZero: 0,
       endBoardOne: 0,
       endBoardTwo: 0,
 
@@ -87,6 +87,33 @@ const getBoardState = async () => {
     await collection.updateOne({}, { $set: { upNextIndex: 0 } });
   }
 
+  if (boardState.gameModeSelected === "") {
+    // Only update if these fields are not already in default state.
+    if (
+      boardState.pathwayProgress !== 0 ||
+      boardState.upNextIndex !== 0 ||
+      (Array.isArray(boardState.upNextSequence) && boardState.upNextSequence.length > 0)
+    ) {
+      const resetUpdates = {
+        pathwayProgress: 0,
+        upNextSequence: [],
+        upNextIndex: 0,
+        pathwayProgress: 0,
+        upNextSequence: [],
+        upNextIndex: 0,
+        nextTicket: 0,
+        validBoardZero: 0,
+        validBoardOne: 0,
+        validBoardTwo: 0,
+        endBoardZero: 0,
+        endBoardOne: 0,
+        endBoardTwo: 0
+      };
+      await collection.updateOne({}, { $set: resetUpdates });
+      boardState = { ...boardState, ...resetUpdates };
+    }
+  }
+
   return boardState;
 };
 
@@ -110,7 +137,7 @@ const updateBoardState = async (updatedFields) => {
 
     'nextTicket',
 
-    // game logic fields
+    // Game logic fields
     'pathwayProgress',
     'upNextSequence',
     'upNextIndex'
