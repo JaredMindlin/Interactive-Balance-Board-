@@ -24,13 +24,10 @@ function GameModes() {
 
   /**
    * handleGameSelect:
-   * - Toggles the selected game mode in Context.
-   * - Optionally sends a POST request to the backend
-   *   so the ESP32 or backend can adjust its state.
    */
   const handleGameSelect = async (game) => {
     const newMode = (gameModeSelected === game) ? '' : game;
-    // Update the Context so UI changes accordingly
+    // Update the context
     selectGameMode(newMode);
 
     // Make a POST request to inform the backend of the new mode
@@ -38,17 +35,46 @@ function GameModes() {
       const response = await fetch('http://172.20.10.4:5000/set-game-mode', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // Send the new mode; if empty, it's essentially unselecting
         body: JSON.stringify({ gameMode: newMode }),
       });
       const data = await response.json();
       console.log('Server response:', data);
-      // Optional: Handle success/error states in the UI
     } catch (error) {
       console.error('Error sending game mode to backend:', error);
     }
   };
 
+  /**
+   * resetGameMode:
+   */
+  const resetGameMode = async () => {
+    try {
+      const response = await fetch('http://172.20.10.4:5000/api/board/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          gameModeSelected: "",
+          pathwayProgress: 0,
+          upNextSequence: [],
+          upNextIndex: 0,
+          expectedBoard: null,
+          nextTicket: 0,
+          validBoardZero: 0,
+          validBoardOne: 0,
+          validBoardTwo: 0,
+          endBoardZero: 0,
+          endBoardOne: 0,
+          endBoardTwo: 0
+        }),
+      });
+      const data = await response.json();
+      console.log('Reset game mode response:', data);
+      selectGameMode(''); // Update front-end context
+    } catch (error) {
+      console.error('Error resetting game mode:', error);
+    }
+  };
+  
   return (
     <div className="game-modes-container">
       <div className="animated-background">
@@ -128,6 +154,17 @@ function GameModes() {
             {gameModeSelected === 'UpNext' ? 'Unselect Up Next' : 'Select Up Next'}
           </button>
         </div>
+      </div>
+
+      {/* Reset Button */}
+      <div style={{ marginTop: '20px' }}>
+        <button
+          className="game-select-button"
+          style={{ backgroundColor: '#ff4d4d' }}
+          onClick={resetGameMode}
+        >
+          Reset Game Mode
+        </button>
       </div>
     </div>
   );
