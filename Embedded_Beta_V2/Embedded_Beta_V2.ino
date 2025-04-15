@@ -29,7 +29,7 @@ String FetchBoardTwoDataAddress = ":5000/api/board/board-valid-data-two";
 String FetchBoardTwoEndAddress = ":5000/api/board/board-end-data-two";
 
 
-int pressurePin = A4;
+int pressurePin = A0;
 Adafruit_NeoPixel NeoPixel(NUM_PIXELS, PIN_NEO_PIXEL, NEO_GRB + NEO_KHZ800);
 int boardBrightness = 255;
 
@@ -109,55 +109,44 @@ void adjustBrightness(int &currBrightness, int nodePacket) {
 }
 
 void PathWayGameMode() {
-  // GET PULL BOARD DATA
-  fetchBoardData();
-  while (currentState == PATHWAY) {
-    int sensorValue = analogRead(pressurePin);
-    Serial.printf("Sensor Value: %d\n", sensorValue);
-    if (isBoardValid) {
-      if (sensorValue > 300) {
-        if (isBoardEndPoint) {
-          youWin();
-        }
-        else {
-          setLEDs(128, 0, 128); // Purple 
-        }
+  int sensorValue = analogRead(pressurePin);
+  Serial.println(sensorValue);
+  if (isBoardValid) {
+    if (sensorValue > 300) {
+      if (isBoardEndPoint) {
+        youWin();
       }
       else {
-        setLEDs(0, 0, 255); // Blue
+        setLEDs(128, 0, 128); // Purple 
       }
     }
     else {
-      if (sensorValue > 300) {
-        
-        youLose();
-      }
+      setLEDs(0, 0, 255); // Blue
     }
-    fetchGameMode();
-    delay(1000);
   }
+  else {
+    if (sensorValue > 300) {
+      youLose();
+    }
+  }
+  delay(1000);
 }
 
 void UpNextGameMode() {
-  // GET PULL BOARD DATA
-  fetchBoardData();
-  while (currentState == UPNEXT) {
-    int sensorValue = analogRead(pressurePin);
-    Serial.printf("Sensor Value: %d\n", sensorValue);
-    if (isBoardEndPoint && sensorValue > 300) {
-      youWin();
+  int sensorValue = analogRead(pressurePin);
+  Serial.println(sensorValue);
+  if (isBoardEndPoint && sensorValue > 300) {
+    youWin();
+  }
+  else {
+    if (sensorValue > 300) {
+      setLEDs(64, 224, 208); // Turqoise
     }
     else {
-      if (sensorValue > 1500) {
-        setLEDs(64, 224, 208); // Turqoise
-      }
-      else {
-        setLEDs(255, 213, 128); // Light Orange
-      }
+      setLEDs(255, 140, 0); // Dark Orange
     }
-    fetchGameMode();
-    delay(1000);
   }
+  delay(1000);
 }
 
 // HTTP Post Function
@@ -264,9 +253,13 @@ void fetchGameMode() {
             currentState = CONNECTED;
             break;
           case 1:
+          // GET PULL BOARD DATA
+            fetchBoardData();
             currentState = PATHWAY;
             break;
           case 2:
+            // GET PULL BOARD DATA
+            fetchBoardData();
             currentState = UPNEXT;
             break;
           default:
@@ -403,6 +396,7 @@ void setup() {
   updateRoutes();
   // Assign this board a unique ID
   fetchBoardID();
+  // Update Device Count
   sendDataToServer();
   delay(2000);
 }
@@ -436,10 +430,7 @@ void loop() {
   Serial.printf("BoardID: %d\n", boardID);
   Serial.printf("Valid Boolean: %d\n", isBoardValid);
   Serial.printf("End Boolean: %d\n", isBoardEndPoint);
-  delay(5000);
-  fetchBoardData();
-  delay(5000);
   NeoPixel.show();
   Serial.printf("End of loop reached\n");
-  delay(5000);
+  delay(3000);
 }
